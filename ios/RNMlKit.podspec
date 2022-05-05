@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.author         = package['author']
   s.homepage       = package['homepage']
   s.platform       = :ios, "7.0"
-  s.source         = { :git => "https://github.com/mateusc42/react-native-firebase-mlkit.git", :tag => "master" }
+  s.source         = { :git => "https://github.com/ivankozlo/react-native-firebase-mlkit.git", :tag => "master" }
   s.source_files   = "*.{h,m}"
   s.requires_arc   = true
 
