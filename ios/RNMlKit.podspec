@@ -16,4 +16,5 @@ Pod::Spec.new do |s|
 
   s.dependency     "React"
   s.dependency     "Firebase"
+  s.dependency     'GoogleMLKit/FaceDetection'
 end
