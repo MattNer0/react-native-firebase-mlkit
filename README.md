@@ -116,3 +116,4 @@ export class textRecognition extends Component {
 }
 ```
   
+* For private use, I changed the firebase mlkit to google ml kit. Also, changed many parts of the code, so, if you want to use original version, please use version 0.6.3 that is the summary podspec file issue fixed. Thank you!

@@ -22,11 +22,8 @@ RCT_REMAP_METHOD(deviceTextRecognition, deviceTextRecognition:(NSString *)imageP
     }
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        //FIRVision *vision = [FIRVision vision];
-        //FIRVisionTextRecognizer *textRecognizer = [vision onDeviceTextRecognizer];
 
         MLKTextRecognizer *textRecognizer = [MLKTextRecognizer textRecognizer];
-        NSDictionary *d = [[NSDictionary alloc] init];
         NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:imagePath]];
         UIImage *image = [UIImage imageWithData:imageData];
 
@@ -54,48 +51,64 @@ RCT_REMAP_METHOD(deviceTextRecognition, deviceTextRecognition:(NSString *)imageP
                 return;
             }
 
-            CGRect boundingBox;
-            CGSize size;
-            CGPoint origin;
-            NSMutableArray *output = [NSMutableArray array];
-
-            for (MLKTextBlock *block in result.blocks) {
-                NSMutableDictionary *blocks = [NSMutableDictionary dictionary];
-                NSMutableDictionary *bounding = [NSMutableDictionary dictionary];
-                NSString *blockText = block.text;
-
-                bounding[@"left"]=[NSString stringWithFormat: @"%f", block.cornerPoints[0].CGVectorValue.dx];
-                bounding[@"top"]=[NSString stringWithFormat: @"%f", block.cornerPoints[0].CGVectorValue.dy];
-
-                bounding[@"width"]=[NSString stringWithFormat: @"%f", block.cornerPoints[2].CGVectorValue.dx-block.cornerPoints[0].CGVectorValue.dx];
-                bounding[@"height"]=[NSString stringWithFormat: @"%f", block.cornerPoints[2].CGVectorValue.dy - block.cornerPoints[0].CGVectorValue.dy];
-
-                blocks[@"resultText"] = result.text;
-                blocks[@"blockText"] = block.text;
-                blocks[@"blockCoordinates"] = bounding;
-
-                [output addObject:blocks];
-
-                for (MLKTextLine *line in block.lines) {
-                    NSMutableDictionary *lines = [NSMutableDictionary dictionary];
-                    lines[@"lineText"] = line.text;
-                    [output addObject:lines];
-
-                    for (MLKTextElement *element in line.elements) {
-                        NSMutableDictionary *elements = [NSMutableDictionary dictionary];
-                        elements[@"elementText"] = element.text;
-                        [output addObject:elements];
-
-                    }
-                }
+            NSMutableArray *textBlocks = [[NSMutableArray alloc] init];
+            for (MLKTextBlock *textBlock in result.blocks) {
+                NSDictionary *textBlockDict = 
+                @{@"type": @"block", @"value" : textBlock.text, @"bounds" : [self processBounds:textBlock.frame], @"components" : [self processLine:textBlock.lines]};
+                [textBlocks addObject:textBlockDict];
             }
 
             dispatch_async(dispatch_get_main_queue(), ^{
-                resolve(output);
+                resolve(textBlocks);
             });
         }];
     });
     
+}
+
+
+- (NSArray *)processLine:(NSArray *)lines
+{
+  NSMutableArray *lineBlocks = [[NSMutableArray alloc] init];
+  for (MLKTextLine *textLine in lines) {
+        NSDictionary *textLineDict = 
+        @{@"type": @"line", @"value" : textLine.text, @"bounds" : [self processBounds:textLine.frame], @"components" : [self processElement:textLine.elements]};
+        [lineBlocks addObject:textLineDict];
+  }
+  return lineBlocks;
+}
+
+- (NSArray *)processElement:(NSArray *)elements
+{
+  NSMutableArray *elementBlocks = [[NSMutableArray alloc] init];
+  for (MLKTextElement *textElement in elements) {
+        NSDictionary *textElementDict = 
+        @{@"type": @"element", @"value" : textElement.text, @"bounds" : [self processBounds:textElement.frame]};
+        [elementBlocks addObject:textElementDict];
+  }
+  return elementBlocks;
+}
+
+- (NSDictionary *)processBounds:(CGRect)bounds
+{
+  float width = bounds.size.width;
+  float height = bounds.size.height;
+  float originX = bounds.origin.x;
+  float originY = bounds.origin.y;
+  NSDictionary *boundsDict =
+  @{
+    @"size" : 
+              @{
+                @"width" : @(width), 
+                @"height" : @(height)
+                }, 
+    @"origin" : 
+              @{
+                @"x" : @(originX),
+                @"y" : @(originY)
+                }
+    };
+  return boundsDict;
 }
 
 @end
