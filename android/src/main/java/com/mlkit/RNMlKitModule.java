@@ -2,7 +2,7 @@
 package com.mlkit;
 
 import android.graphics.Rect;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
@@ -45,45 +45,6 @@ public class RNMlKitModule extends ReactContextBaseJavaModule {
     this.reactContext = reactContext;
   }
 
-  @ReactMethod
-  public void deviceBarcodeRecognition(String uri, final Promise promise) {
-    try {
-      FirebaseVisionBarcodeDetectorOptions options =
-        new FirebaseVisionBarcodeDetectorOptions.Builder()
-        .setBarcodeFormats(FirebaseVisionBarcode. FORMAT_ALL_FORMATS)
-        .build();
-      FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this.reactContext, android.net.Uri.parse(uri));
-      FirebaseVisionBarcodeDetector detector = FirebaseVision.getInstance()
-        .getVisionBarcodeDetector(options);
-      
-      Task<List<FirebaseVisionBarcode>> result = detector.detectInImage(image)
-        .addOnSuccessListener(new OnSuccessListener<List<FirebaseVisionBarcode>>() {
-            @Override
-            public void onSuccess(List<FirebaseVisionBarcode> barcodes) {
-                WritableArray data = Arguments.createArray();
-                WritableMap info = Arguments.createMap();
-
-                for (FirebaseVisionBarcode barcode: barcodes) {
-                    info = Arguments.createMap();
-                    info.putString("format", barcodeFormat(barcode.getFormat()));
-                    info.putString("value", barcode.getRawValue());
-                    data.pushMap(info);
-                }
-                promise.resolve(data);
-            }
-        })
-        .addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                e.printStackTrace();
-                promise.reject(e);
-            }
-      });
-    } catch (IOException e) {
-      promise.reject(e);
-      e.printStackTrace();
-    }
-  }
 
   @ReactMethod
   public void deviceTextRecognition(String uri, final Promise promise) {
@@ -111,54 +72,12 @@ public class RNMlKitModule extends ReactContextBaseJavaModule {
           e.printStackTrace();
       }
   }
-  @ReactMethod
-  public void deviceFaceRecognition(String uri, final Promise promise){
-      try{
-          FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this.reactContext, android.net.Uri.parse(uri));
-          FirebaseVisionFaceDetector detector = this.getFaceDetectorInstance();
-
-          Task<List<FirebaseVisionFace>> result = detector.detectInImage(image)
-                                                            .addOnSuccessListener(new OnSuccessListener<List<FirebaseVisionFace>>() {
-                                                                @Override
-                                                                public void onSuccess(List<FirebaseVisionFace> firebaseVisionFaces) {
-                                                                    promise.resolve(processFaceDetectionResult(firebaseVisionFaces));
-                                                                }
-                                                            })
-                                                            .addOnFailureListener(new OnFailureListener() {
-                                                                @Override
-                                                                public void onFailure(@NonNull Exception e) {
-                                                                    e.printStackTrace();
-                                                                    promise.reject(e);
-                                                                }
-                                                            });
-      }catch (Exception e){
-          promise.reject(e);
-          e.printStackTrace();
-      }
-  }
   private FirebaseVisionTextRecognizer getTextRecognizerInstance() {
     if (this.textDetector == null) {
       this.textDetector = FirebaseVision.getInstance().getOnDeviceTextRecognizer();
     }
 
     return this.textDetector;
-  }
-  private FirebaseVisionFaceDetector getFaceDetectorInstance(){
-      if(this.faceDetector == null){
-          //=====Set options=====
-          FirebaseVisionFaceDetectorOptions options =
-                  new FirebaseVisionFaceDetectorOptions.Builder()
-                          .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
-                          .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
-                          .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
-                          .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
-                          .setMinFaceSize(0.15f)
-                          .enableTracking()
-                          .build();
-          //=====================
-          this.faceDetector = FirebaseVision.getInstance().getVisionFaceDetector(options);
-      }
-      return this.faceDetector;
   }
 
   @ReactMethod
@@ -173,111 +92,8 @@ public class RNMlKitModule extends ReactContextBaseJavaModule {
         promise.reject(e);
       }
     }
-
-    if(this.cloudTextDetector != null) {
-      try {
-        this.cloudTextDetector.close();
-        this.cloudTextDetector = null;
-        promise.resolve(true);
-      } catch (IOException e) {
-        e.printStackTrace();
-        promise.reject(e);
-      }
-    }
-      if(this.faceDetector != null) {
-          try {
-              this.faceDetector.close();
-              this.faceDetector = null;
-              promise.resolve(true);
-          } catch (IOException e) {
-              e.printStackTrace();
-              promise.reject(e);
-          }
-      }
   }
 
-  private FirebaseVisionTextRecognizer getCloudTextRecognizerInstance() {
-    if (this.cloudTextDetector == null) {
-      this.cloudTextDetector = FirebaseVision.getInstance().getCloudTextRecognizer();
-    }
-
-    return this.cloudTextDetector;
-  }
-
-  @ReactMethod
-  public void cloudTextRecognition(String uri, final Promise promise) {
-      try {
-          FirebaseVisionTextRecognizer detector = this.getCloudTextRecognizerInstance();
-          FirebaseVisionImage image = FirebaseVisionImage.fromFilePath(this.reactContext, android.net.Uri.parse(uri));
-          Task<FirebaseVisionText> result =
-                  detector.processImage(image)
-                          .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
-                              @Override
-                              public void onSuccess(FirebaseVisionText firebaseVisionText) {
-                                  promise.resolve(processCloudResult(firebaseVisionText));
-                              }
-                          })
-                          .addOnFailureListener(
-                                  new OnFailureListener() {
-                                      @Override
-                                      public void onFailure(@NonNull Exception e) {
-                                          e.printStackTrace();
-                                          promise.reject(e);
-                                      }
-                                  });
-      } catch (IOException e) {
-          promise.reject(e);
-          e.printStackTrace();
-      }
-  }
-
-  private String barcodeFormat(int format) {
-      switch (format) {
-          case FirebaseVisionBarcode.FORMAT_CODE_128:
-              return "CODE_128";
-      
-          case FirebaseVisionBarcode.FORMAT_CODE_39:
-              return "CODE_39";
-      
-          case FirebaseVisionBarcode.FORMAT_CODE_93:
-              return "CODE_93";
-            
-          case FirebaseVisionBarcode.FORMAT_CODABAR:
-              return "CODABAR";
-
-          case FirebaseVisionBarcode.FORMAT_DATA_MATRIX:
-              return "DATA_MATRIX";
-      
-          case FirebaseVisionBarcode.FORMAT_EAN_13:
-              return "EAN_13";
-      
-          case FirebaseVisionBarcode.FORMAT_EAN_8:
-              return "EAN_8";
-      
-          case FirebaseVisionBarcode.FORMAT_ITF:
-              return "ITF";
-      
-          case FirebaseVisionBarcode.FORMAT_QR_CODE:
-              return "QR_CODE";
-      
-          case FirebaseVisionBarcode.FORMAT_UPC_A:
-              return "UPC_A";
-      
-          case FirebaseVisionBarcode.FORMAT_UPC_E:
-              return "UPC_E";
-
-          case FirebaseVisionBarcode.FORMAT_PDF417:
-              return "PDF417";
-      
-          case FirebaseVisionBarcode.FORMAT_AZTEC:
-              return "AZTEC";
-      
-          default:
-            return "UNKNOWN";
-      }
-  }
-
- 
   /**
    * Converts firebaseVisionText into a map
    *
@@ -285,148 +101,134 @@ public class RNMlKitModule extends ReactContextBaseJavaModule {
    * @return
    */
   private WritableArray processDeviceResult(FirebaseVisionText firebaseVisionText) {
-      WritableArray data = Arguments.createArray();
-      WritableMap info = Arguments.createMap();
-      WritableMap coordinates = Arguments.createMap();
-      List<FirebaseVisionText.TextBlock> blocks = firebaseVisionText.getTextBlocks();
+    //WritableArray data = Arguments.createArray();
+//   WritableMap info = Arguments.createMap();
+//   WritableMap coordinates = Arguments.createMap();
+    List<FirebaseVisionText.TextBlock> blocks = firebaseVisionText.getTextBlocks();
+    WritableArray data = serializeEventData(blocks);
+    if (blocks.size() == 0) {
+        return data;
+    }
+    
+    
+    //   for (int i = 0; i < blocks.size(); i++) {
+    //       List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
+    //       info = Arguments.createMap();
+    //       coordinates = Arguments.createMap();
 
-      if (blocks.size() == 0) {
-          return data;
-      }
+    //       Rect boundingBox = blocks.get(i).getBoundingBox();
 
-      for (int i = 0; i < blocks.size(); i++) {
-          List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
-          info = Arguments.createMap();
-          coordinates = Arguments.createMap();
+    //       coordinates.putInt("top", boundingBox.top);
+    //       coordinates.putInt("left", boundingBox.left);
+    //       coordinates.putInt("width", boundingBox.width());
+    //       coordinates.putInt("height", boundingBox.height());
 
-          Rect boundingBox = blocks.get(i).getBoundingBox();
+    //       info.putMap("blockCoordinates", coordinates);
+    //       info.putString("blockText", blocks.get(i).getText());
+    //       info.putString("resultText", firebaseVisionText.getText());
 
-          coordinates.putInt("top", boundingBox.top);
-          coordinates.putInt("left", boundingBox.left);
-          coordinates.putInt("width", boundingBox.width());
-          coordinates.putInt("height", boundingBox.height());
+    //       for (int j = 0; j < lines.size(); j++) {
+    //           List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
+    //           info.putString("lineText", lines.get(j).getText());
 
-          info.putMap("blockCoordinates", coordinates);
-          info.putString("blockText", blocks.get(i).getText());
-          info.putString("resultText", firebaseVisionText.getText());
+    //           for (int k = 0; k < elements.size(); k++) {
+    //               info.putString("elementText", elements.get(k).getText());
+    //           }
+    //       }
 
-          for (int j = 0; j < lines.size(); j++) {
-              List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
-              info.putString("lineText", lines.get(j).getText());
-
-              for (int k = 0; k < elements.size(); k++) {
-                  info.putString("elementText", elements.get(k).getText());
-              }
-          }
-
-          data.pushMap(info);
-      }
-
-      return data;
-  }
-
-  private WritableArray processCloudResult(FirebaseVisionText firebaseVisionText) {
-      WritableArray data = Arguments.createArray();
-      WritableMap info = Arguments.createMap();
-      WritableMap coordinates = Arguments.createMap();
-      List<FirebaseVisionText.TextBlock> blocks = firebaseVisionText.getTextBlocks();
-
-      if (blocks.size() == 0) {
-          return data;
-      }
-
-      for (int i = 0; i < blocks.size(); i++) {
-          List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
-          info = Arguments.createMap();
-          coordinates = Arguments.createMap();
-
-          Rect boundingBox = blocks.get(i).getBoundingBox();
-
-          coordinates.putInt("top", boundingBox.top);
-          coordinates.putInt("left", boundingBox.left);
-          coordinates.putInt("width", boundingBox.width());
-          coordinates.putInt("height", boundingBox.height());
-
-          info.putMap("blockCoordinates", coordinates);
-          info.putString("blockText", blocks.get(i).getText());
-
-          for (int j = 0; j < lines.size(); j++) {
-              List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
-              info.putString("lineText", lines.get(j).getText());
-
-              for (int k = 0; k < elements.size(); k++) {
-                  info.putString("elementText", elements.get(k).getText());
-              }
-          }
-
-          data.pushMap(info);
-      }
+    //       data.pushMap(info);
+    //   }
 
       return data;
   }
+  private WritableArray serializeEventData(List<FirebaseVisionText.TextBlock> textBlocks) {
+    WritableArray textBlocksList = Arguments.createArray();
+    for (FirebaseVisionText.TextBlock block: textBlocks) {
+      WritableMap serializedTextBlock = serializeBloc(block);
+      textBlocksList.pushMap(serializedTextBlock);
+    }
 
-  private WritableArray processFaceDetectionResult(List<FirebaseVisionFace> firebaseVisionFaces){
-      WritableArray data = Arguments.createArray();
-
-      if(firebaseVisionFaces.size() > 0){
-          WritableMap info = Arguments.createMap();
-          for (FirebaseVisionFace face : firebaseVisionFaces){
-              info = Arguments.createMap();
-              //face bounding box
-              Rect faceBounding = face.getBoundingBox();
-
-              WritableMap faceBox = Arguments.createMap();
-              faceBox.putInt("top", faceBounding.top);
-              faceBox.putInt("right", faceBounding.right);
-              faceBox.putInt("bottom", faceBounding.bottom);
-              faceBox.putInt("left", faceBounding.left);
-
-              info.putMap("faceBoundingRect", faceBox);
-
-              // If classification was enabled:
-              if (face.getSmilingProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
-                  float smileProb = face.getSmilingProbability();
-                  info.putDouble("smileProbability", (double)smileProb);
-              }
-              if (face.getRightEyeOpenProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
-                  float rightEyeOpenProb = face.getRightEyeOpenProbability();
-                  info.putDouble("rightEyeOpenProbability", (double)rightEyeOpenProb);
-              }
-
-              // If face tracking was enabled:
-              if (face.getTrackingId() != FirebaseVisionFace.INVALID_ID) {
-                  int id = face.getTrackingId();
-                  info.putInt("faceTrackingId", id);
-              }
-              //eyes
-              info.putArray("leftEyeContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.LEFT_EYE));
-              info.putArray("rightEyeContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.RIGHT_EYE));
-              //face
-              info.putArray("faceContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.FACE));
-              //lower lip
-              info.putArray("lowerLipBottomContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.LOWER_LIP_BOTTOM));
-              info.putArray("lowerLipBottomContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.LOWER_LIP_TOP));
-              //upper lip
-              info.putArray("upperLipTopContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.UPPER_LIP_TOP));
-              info.putArray("upperLipBottomContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.UPPER_LIP_BOTTOM));
-              //nose
-              info.putArray("noiseBottomContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.NOSE_BOTTOM));
-              info.putArray("noiseBridgeContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.NOSE_BRIDGE));
-              //left eyebrow
-              info.putArray("leftEyeBrowBottomContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.LEFT_EYEBROW_BOTTOM));
-              info.putArray("leftEyeBrowTopContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.LEFT_EYEBROW_TOP));
-              // right eyebrow
-              info.putArray("rightEyeBrowBottomContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.RIGHT_EYEBROW_BOTTOM));
-              info.putArray("rightEyeBrowTopContourPoints", Utils.getContourPointsWritableArray(face, FirebaseVisionFaceContour.RIGHT_EYEBROW_TOP));
-
-
-
-              data.pushMap(info);
-          }
-      }
-
-      return data;
+    return textBlocksList;
   }
+  private WritableMap serializeBloc(FirebaseVisionText.TextBlock block) {
+    WritableMap encodedText = Arguments.createMap();
+    WritableArray lines = Arguments.createArray();
+    for (FirebaseVisionText.Line line : block.getLines()) {
+      lines.pushMap(serializeLine(line));
+    }
+    encodedText.putArray("components", lines);
+
+    encodedText.putString("value", block.getText());
+
+    WritableMap bounds = processBounds(block.getBoundingBox());
+
+    encodedText.putMap("bounds", bounds);
+
+    encodedText.putString("type", "block");
+    return encodedText;
+  }
+
+  private WritableMap serializeLine(FirebaseVisionText.Line line) {
+    WritableMap encodedText = Arguments.createMap();
+    WritableArray lines = Arguments.createArray();
+    for (FirebaseVisionText.Element element : line.getElements()) {
+      lines.pushMap(serializeElement(element));
+    }
+    encodedText.putArray("components", lines);
+
+    encodedText.putString("value", line.getText());
+
+    WritableMap bounds = processBounds(line.getBoundingBox());
+
+    encodedText.putMap("bounds", bounds);
+
+    encodedText.putString("type", "line");
+    return encodedText;
+  }
+
+  private WritableMap serializeElement(FirebaseVisionText.Element element) {
+    WritableMap encodedText = Arguments.createMap();
+
+    encodedText.putString("value", element.getText());
+
+    WritableMap bounds = processBounds(element.getBoundingBox());
+
+    encodedText.putMap("bounds", bounds);
+
+    encodedText.putString("type", "element");
+    return encodedText;
+  }
+
+  private WritableMap processBounds(Rect frame) {
+    WritableMap origin = Arguments.createMap();
+    int x = frame.left;
+    int y = frame.top;
+
+    // if (frame.left < mWidth / 2) {
+    //   x = x + mPaddingLeft / 2;
+    // } else if (frame.left > mWidth /2) {
+    //   x = x - mPaddingLeft / 2;
+    // }
+
+    // if (frame.top < mHeight / 2) {
+    //   y = y + mPaddingTop / 2;
+    // } else if (frame.top > mHeight / 2) {
+    //   y = y - mPaddingTop / 2;
+    // }
+
+    origin.putDouble("x", x);
+    origin.putDouble("y", y);
+
+    WritableMap size = Arguments.createMap();
+    size.putDouble("width", frame.width());
+    size.putDouble("height", frame.height());
+
+    WritableMap bounds = Arguments.createMap();
+    bounds.putMap("origin", origin);
+    bounds.putMap("size", size);
+    return bounds;
+  }
+
   @Override
   public String getName() {
     return "RNMlKit";
