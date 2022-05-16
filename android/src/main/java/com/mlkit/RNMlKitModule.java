@@ -101,45 +101,12 @@ public class RNMlKitModule extends ReactContextBaseJavaModule {
    * @return
    */
   private WritableArray processDeviceResult(FirebaseVisionText firebaseVisionText) {
-    //WritableArray data = Arguments.createArray();
-//   WritableMap info = Arguments.createMap();
-//   WritableMap coordinates = Arguments.createMap();
     List<FirebaseVisionText.TextBlock> blocks = firebaseVisionText.getTextBlocks();
     WritableArray data = serializeEventData(blocks);
     if (blocks.size() == 0) {
-        return data;
-    }
-    
-    
-    //   for (int i = 0; i < blocks.size(); i++) {
-    //       List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
-    //       info = Arguments.createMap();
-    //       coordinates = Arguments.createMap();
-
-    //       Rect boundingBox = blocks.get(i).getBoundingBox();
-
-    //       coordinates.putInt("top", boundingBox.top);
-    //       coordinates.putInt("left", boundingBox.left);
-    //       coordinates.putInt("width", boundingBox.width());
-    //       coordinates.putInt("height", boundingBox.height());
-
-    //       info.putMap("blockCoordinates", coordinates);
-    //       info.putString("blockText", blocks.get(i).getText());
-    //       info.putString("resultText", firebaseVisionText.getText());
-
-    //       for (int j = 0; j < lines.size(); j++) {
-    //           List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
-    //           info.putString("lineText", lines.get(j).getText());
-
-    //           for (int k = 0; k < elements.size(); k++) {
-    //               info.putString("elementText", elements.get(k).getText());
-    //           }
-    //       }
-
-    //       data.pushMap(info);
-    //   }
-
       return data;
+    }
+    return data;
   }
   private WritableArray serializeEventData(List<FirebaseVisionText.TextBlock> textBlocks) {
     WritableArray textBlocksList = Arguments.createArray();

@@ -1,8 +1,5 @@
-
 #import "RNMlKit.h"
-
 #import <React/RCTBridge.h>
-
 #import <GoogleMLKit/MLKit.h>
 
 @implementation RNMlKit
