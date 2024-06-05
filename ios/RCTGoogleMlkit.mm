@@ -1,6 +1,6 @@
-#import "GoogleMlkit.h"
+#import "RCTGoogleMlkit.h"
 
-@implementation GoogleMlkit
+@implementation RCTGoogleMlkit
 
 - (dispatch_queue_t)methodQueue
 {

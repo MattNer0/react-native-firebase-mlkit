@@ -5,7 +5,7 @@ version = packageJson["version"]
 repository = packageJson["repository"]["url"]
 
 Pod::Spec.new do |s|
-	s.name           = "GoogleMlkit"
+	s.name           = "RCTGoogleMlkit"
 	s.version        = version
 	s.description    = packageJson["description"]
 	s.homepage       = packageJson["homepage"]
