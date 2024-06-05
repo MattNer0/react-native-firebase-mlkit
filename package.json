@@ -1,6 +1,6 @@
 {
   "name": "@ivankozlo/react-native-firebase-mlkit",
-  "version": "0.6.8",
+  "version": "0.6.7",
   "description": "Text Recognition in image for react native using firebase ML Kit",
   "homepage": "https://github.com/ivankozlo/react-native-firebase-mlkit",
   "summary": "RNMlkit",
@@ -14,6 +14,7 @@
   "author": "Mateus Cardoso",
   "license": "MIT",
   "peerDependencies": {
-    "react-native": "^0.55.3"
+    "react": "*",
+    "react-native": "*"
   }
 }
