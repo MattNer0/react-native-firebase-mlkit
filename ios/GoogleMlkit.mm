@@ -1,18 +1,21 @@
-#import "RNMlKit.h"
-#import <React/RCTBridge.h>
-#import <GoogleMLKit/MLKit.h>
+#import "GoogleMlkit.h"
 
-@implementation RNMlKit
+@implementation GoogleMlkit
 
 - (dispatch_queue_t)methodQueue
 {
     return dispatch_get_main_queue();
 }
-RCT_EXPORT_MODULE()
+
+RCT_EXPORT_MODULE(RNMlKit);
 
 static NSString *const detectionNoResultsMessage = @"Something went wrong";
 
-RCT_REMAP_METHOD(deviceTextRecognition, deviceTextRecognition:(NSString *)imagePath resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+RCT_REMAP_METHOD(deviceTextRecognition,
+                imageRecognition:(NSString *)imagePath
+                resolver:(RCTPromiseResolveBlock)resolve
+                rejecter:(RCTPromiseRejectBlock)reject)
+{
     if (!imagePath) {
         resolve(@NO);
         return;

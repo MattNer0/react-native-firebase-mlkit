@@ -1,12 +1,17 @@
 {
   "name": "@ivankozlo/react-native-firebase-mlkit",
+  "displayName": "React-Native Google MLKit",
   "version": "0.6.7",
-  "description": "Text Recognition in image for react native using firebase ML Kit",
+  "description": "Text Recognition in image for react native using google ML Kit",
   "homepage": "https://github.com/ivankozlo/react-native-firebase-mlkit",
   "summary": "RNMlkit",
-  "main": "index.js",
+  "main": "src",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MattNer0/react-native-firebase-mlkit"
   },
   "keywords": [
     "react-native"
