@@ -1,5 +1,7 @@
 #import "RCTGoogleMlkit.h"
 
+#import <GoogleMLKit/MLKit.h>
+
 @implementation RCTGoogleMlkit
 
 - (dispatch_queue_t)methodQueue
@@ -34,7 +36,6 @@ RCT_REMAP_METHOD(deviceTextRecognition,
             return;
         }
 
-        
         MLKVisionImage *handler = [[MLKVisionImage alloc] initWithImage:image];
         handler.orientation = image.imageOrientation;
 
